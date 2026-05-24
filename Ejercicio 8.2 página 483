@@ -1,0 +1,98 @@
+import tkinter as tk
+from tkinter import messagebox
+import math
+
+class Notas:
+    def __init__(self):
+        self.lista_notas = []
+
+    def calcular_promedio(self):
+        if not self.lista_notas: return 0
+        return sum(self.lista_notas) / len(self.lista_notas)
+
+    def calcular_desviacion(self):
+        promedio = self.calcular_promedio()
+        suma = 0
+        for nota in self.lista_notas:
+            suma += math.pow(nota - promedio, 2)
+        #esa es la fórmula de desviación estándar
+        return math.sqrt(suma / len(self.lista_notas))
+
+    def calcular_mayor(self):
+        return max(self.lista_notas) if self.lista_notas else 0
+
+    def calcular_menor(self):
+        return min(self.lista_notas) if self.lista_notas else 0
+
+#La ventana
+class VentanaPrincipal(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("Notas")
+        self.geometry("280x380")
+        self.resizable(False, False)
+        self.notas_obj = Notas()
+        self.inicio()
+
+    def inicio(self):
+        #las entradas para las 5 notas
+        self.campos = []
+        for i in range(5):
+            tk.Label(self, text=f"Nota {i+1}:").place(x=20, y=20 + (i * 30))
+            ent = tk.Entry(self)
+            ent.place(x=100, y=20 + (i * 30), width=135)
+            self.campos.append(ent)
+
+        #Los botones 
+        btn_calcular = tk.Button(self, text="Calcular", command=self.calcular)
+        btn_calcular.place(x=40, y=180, width=80)
+
+        btn_limpiar = tk.Button(self, text="Limpiar", command=self.limpiar)
+        btn_limpiar.place(x=140, y=180, width=80)
+
+        #resultados
+        self.lbl_promedio = tk.Label(self, text="Promedio = ")
+        self.lbl_promedio.place(x=20, y=220)
+
+        self.lbl_desviacion = tk.Label(self, text="Desviación estándar = ")
+        self.lbl_desviacion.place(x=20, y=250)
+
+        self.lbl_mayor = tk.Label(self, text="Nota mayor = ")
+        self.lbl_mayor.place(x=20, y=280)
+
+        self.lbl_menor = tk.Label(self, text="Nota menor = ")
+        self.lbl_menor.place(x=20, y=310)
+
+    def calcular(self):
+        try:
+            # Captura de datos
+            self.notas_obj.lista_notas = [float(c.get()) for i, c in enumerate(self.campos)]
+             # Validar rango
+            for nota in self.notas_obj.lista_notas:
+              if nota < 0 or nota > 5:
+                messagebox.showerror("Error", "Las notas deben estar entre 0 y 5")
+                return
+
+            prom = self.notas_obj.calcular_promedio()
+            desv = self.notas_obj.calcular_desviacion()
+            mayor = self.notas_obj.calcular_mayor()
+            menor = self.notas_obj.calcular_menor()
+
+            self.lbl_promedio.config(text=f"Promedio = {prom:.2f}")
+            self.lbl_desviacion.config(text=f"Desviación estándar = {desv:.2f}")
+            self.lbl_mayor.config(text=f"Nota mayor = {mayor}")
+            self.lbl_menor.config(text=f"Nota menor = {menor}")
+        except ValueError:
+            messagebox.showerror("Error", "Campo nulo o error en formato de número")
+
+    def limpiar(self):
+        for c in self.campos:
+            c.delete(0, tk.END)
+        self.lbl_promedio.config(text="Promedio = ")
+        self.lbl_desviacion.config(text="Desviación estándar = ")
+        self.lbl_mayor.config(text="Nota mayor = ")
+        self.lbl_menor.config(text="Nota menor = ")
+
+
+app = VentanaPrincipal()
+app.mainloop()
