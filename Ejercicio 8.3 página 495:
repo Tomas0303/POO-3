@@ -1,0 +1,112 @@
+import tkinter as tk
+from tkinter import messagebox
+import math
+
+#Clases pa las figuras
+class FiguraGeometrica:
+    def __init__(self):
+        self.volumen = 0
+        self.superficie = 0
+
+class Cilindro(FiguraGeometrica):
+    def __init__(self, radio, altura):
+        super().__init__()
+        self.radio = radio
+        self.altura = altura
+
+    def calcular_volumen(self):
+        return math.pi * math.pow(self.radio, 2) * self.altura
+
+    def calcular_superficie(self):
+        return 2 * math.pi * self.radio * (self.radio + self.altura)
+
+class Esfera(FiguraGeometrica):
+    def __init__(self, radio):
+        super().__init__()
+        self.radio = radio
+
+    def calcular_volumen(self):
+        return (4/3) * math.pi * math.pow(self.radio, 3)
+
+    def calcular_superficie(self):
+        return 4 * math.pi * math.pow(self.radio, 2)
+
+class Piramide(FiguraGeometrica):
+    def __init__(self, base, altura, apotema):
+        super().__init__()
+        self.base = base
+        self.altura = altura
+        self.apotema = apotema
+
+    def calcular_volumen(self):
+        return (math.pow(self.base, 2) * self.altura) / 3.0
+
+    def calcular_superficie(self):
+        area_base = math.pow(self.base, 2)
+        area_lado = 2 * self.base * self.apotema
+        return area_base + area_lado
+
+#ventanas de los calculos
+class VentanaFigura(tk.Toplevel):
+    def __init__(self, titulo, campos_nombres, calculo_callback):
+        super().__init__()
+        self.title(titulo)
+        self.geometry("280x260")
+        self.calculo_callback = calculo_callback
+        self.campos = {}
+        
+        for i, nombre in enumerate(campos_nombres):
+            tk.Label(self, text=f"{nombre} (cms):").place(x=20, y=20 + (i * 30))
+            ent = tk.Entry(self)
+            ent.place(x=120, y=20 + (i * 30), width=135)
+            self.campos[nombre] = ent
+
+        btn_calc = tk.Button(self, text="Calcular", command=self.ejecutar_calculo)
+        btn_calc.place(x=120, y=20 + (len(campos_nombres) * 30), width=135)
+
+        self.lbl_vol = tk.Label(self, text="Volumen (cm3): ")
+        self.lbl_vol.place(x=20, y=140)
+        self.lbl_sup = tk.Label(self, text="Superficie (cm2): ")
+        self.lbl_sup.place(x=20, y=170)
+
+    def ejecutar_calculo(self):
+        try:
+            valores = {k: float(v.get()) for k, v in self.campos.items()}
+            vol, sup = self.calculo_callback(valores)
+            self.lbl_vol.config(text=f"Volumen (cm3): {vol:.2f}")
+            self.lbl_sup.config(text=f"Superficie (cm2): {sup:.2f}")
+        except ValueError:
+            messagebox.showerror("Error", "Campo nulo o error en formato de número")
+
+#Interfaz
+class VentanaPrincipal(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("Figuras")
+        self.geometry("350x120")
+        self.resizable(False, False)
+        self.inicio()
+
+    def inicio(self):
+        tk.Button(self, text="Cilindro", command=self.abrir_cilindro).place(x=20, y=40, width=100)
+        tk.Button(self, text="Esfera", command=self.abrir_esfera).place(x=125, y=40, width=100)
+        tk.Button(self, text="Pirámide", command=self.abrir_piramide).place(x=230, y=40, width=100)
+
+    def abrir_cilindro(self):
+        VentanaFigura("Cilindro", ["Radio", "Altura"], 
+                      lambda v: (Cilindro(v["Radio"], v["Altura"]).calcular_volumen(),
+                                 Cilindro(v["Radio"], v["Altura"]).calcular_superficie()))
+
+    def abrir_esfera(self):
+        VentanaFigura("Esfera", ["Radio"], 
+                      lambda v: (Esfera(v["Radio"]).calcular_volumen(),
+                                 Esfera(v["Radio"]).calcular_superficie()))
+
+    def abrir_piramide(self):
+        VentanaFigura("Pirámide", ["Base", "Altura", "Apotema"], 
+                      lambda v: (Piramide(v["Base"], v["Altura"], v["Apotema"]).calcular_volumen(),
+                                 Piramide(v["Base"], v["Altura"], v["Apotema"]).calcular_superficie()))
+
+
+app = VentanaPrincipal()
+app.mainloop()
